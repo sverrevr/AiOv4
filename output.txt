@@ -1,0 +1,24 @@
+Inni for-løkka som iterer over alle (to) attributtverdier og setter barn:
+Child of A0=1 is: C1
+Child of A2=1 is: C1
+Child of A2=2 is: C2
+Child of A1=1 is: A2
+Child of A6=1 is: C1
+Child of A6=2 is: C1
+Child of A5=1 is: A6
+Child of A5=2 is: C2
+Child of A4=1 is: A5
+Child of A4=2 is: C2
+Child of A3=1 is: A4
+Child of A3=2 is: C1
+Child of A1=2 is: A3
+Child of A0=2 is: A1
+
+Etter for-løkka, rett før noden returneres:
+Children of A 2 <__main__.Node object at 0x000002B8C41EA2B0> {1: 1, 2: 2}
+Children of A 6 <__main__.Node object at 0x000002B8C42424E0> {1: 1, 2: 1}
+Children of A 5 <__main__.Node object at 0x000002B8C4242438> {1: <__main__.Node object at 0x000002B8C42424E0>, 2: 2}
+Children of A 4 <__main__.Node object at 0x000002B8C4242470> {1: <__main__.Node object at 0x000002B8C4242438>, 2: 2}
+Children of A 3 <__main__.Node object at 0x000002B8C41EA240> {1: <__main__.Node object at 0x000002B8C4242470>, 2: 1}
+Children of A 1 <__main__.Node object at 0x000002B8C4236E48> {1: <__main__.Node object at 0x000002B8C4242470>, 2: <__main__.Node object at 0x000002B8C41EA240>}
+Children of A 0 <__main__.Node object at 0x000002B8C4236DA0> {1: <__main__.Node object at 0x000002B8C4242470>, 2: <__main__.Node object at 0x000002B8C4236E48>}

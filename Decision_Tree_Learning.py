@@ -1,11 +1,8 @@
 import random
 
-class Tree_Class:
-    value = 0
-    #Siden oppgaven absolutt skulle 1 indeksere blir det første elemtet aldrig brukt
-    #Barna kan enten være en annen trenode eller en int hvis vi er på en bladnode
-    #denne inten er da klassifiseringen.
-    child = [None, None, None]
+class Node:
+    value = -1
+    children = [None, None]
 
 def Plurality_Value(examples):
     class1 = 0
@@ -28,69 +25,121 @@ def Plurality_Value(examples):
 def Same_Classification(examples):
     #tester om alle har samme klassifikasjon
     classification = examples[0][-1];
-    for line in examples:
+    for element in examples:
         #siste element er klassifikasjonen
-        if(line[-1] != classification):
+        if(element[-1] != classification):
             return False
     return True
 
 def Find_Most_Important_Attribute(examples, attributes):
-    #Det er het vi skal bruke etropi og stuff for å finne den viktigste
-    return attributes[0];
-    #rand = random.randrange(0,len(attributes),1)
-    #return attributes[rand]
+    gains = []
+    # defining class 1 as positive
+    p = 0
+    for elem in examples:
+        if elem[-1]==1:
+            p+=1
+    n = len(examples)-p
+    
+    for A in attributes:
+        gain = B(p/(p+n)) - Remainder(A)
+        gains.append((gain, A))
+
+    gains.sort()
+    return gains[-1]
+
+def Random_Attribute(attributes):
+    #for testing purposes:
+    #return attributes[0]
+        
+    rand = random.randrange(0,len(attributes),1)
+    return attributes[rand]
+
+def B(q):
+    return (q-1)*log(1-q, 2) - q*math.log(q, 2)
+
+def Remainder(attribute, examples, p):
+    p1 = 0
+    n1 = 0
+    for elem in examples:
+        if elem[attribute] == 1:
+            if elem[-1] == 1:
+                p1 += 1
+            else:
+                n1 += 1
+    p2 = p-p1
+    n2 = len(examples)-p-n1
+
+    return (p1+n1)*B(p1/(p1+n1))/len(examples) + (p2+n2)*B(p2/(p2+n2))/len(examples)
     
 
-def Splice_Examples(examples, attribute, value):
-    #returerer en list over examples med gitt verdi på gitt atribute
+def Filter_Examples(examples, attribute, value):
+    #returerer en list over examples med gitt verdi på gitt attribute
     exs = []
-    for row in examples:
-        if (row[attribute] == value):
-            exs.append(row)
+    for element in examples:
+        if (element[attribute] == value):
+            exs.append(element)
     return exs
     
-#Hoved algoritmen:
+#Hovedalgoritmen:
 def Decision_Tree_Learning(examples, attributes, parent_examples):
     if not examples:
-        print("No more exapmles")
+        #print("No more examples")
         return Plurality_Value(parent_examples)
     elif Same_Classification(examples):
-        print("Same class on examples")
+        #print("Same class on examples")
         return examples[0][-1]
     elif not attributes:
-        print("Used all atributes")
+        #print("No attributes")
         return Plurality_Value(examples)
     else:
-        #Lager en ny trenode som spillet på den viktigste atributen.
-        #Disse trenodene sendes oppover i rekusjonsrekke og
+        #Lager en ny trenode som splitter på den viktigste atributten.
+        #Disse trenodene sendes oppover i rekusjonsrekken og
         #kobles på noden over.
-        tree = Tree_Class()
-        tree.value = Find_Most_Important_Attribute(examples,attributes);
+        tree = Node()
+        tree.value = Random_Attribute(attributes)
         #fjerner attributen vi nå har brukt opp
         attributes.remove(tree.value)
         #Går gjennom alle verdiene attributen kan ha, altså 1 og 2.
         for value in range(1,3):
             #Finner alle eksemplene med denne verdien på rett atribut
-            exs = Splice_Examples(examples,tree.value,value);
+            exs = Filter_Examples(examples, tree.value, value);
             #Kjører denne algoritmen igjen med bare disse eksemplene
             subtree = Decision_Tree_Learning(exs, attributes, examples)
-            tree.child[value] = subtree
+            tree.children[value-1] = subtree
+            print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
+            if type(subtree) is int:
+                print('C', subtree, sep='')
+            else:
+                print('A',subtree.value, sep='')
+        
         return tree
 
 #Denne fantastiske print funksjonen skriver nedover mot venstre.
 #Når det kommer en blad node (har bokstaven C forran seg og en ekstra newline)
 #går treet opp et nivå og så andre veien. Gjør det veldig vannskelig å
 #dekode hvordan treet ser ut. 
-def Print_Tree(tree):
-    print(tree.value)
-    for i in range(1,3):
-        if(type(tree.child[i]) is int):
-            print("C", tree.child[i])
-            print()
+def Print_Tree(node, tab):
+    print(('').ljust(20*tab), end='')
+    for i in range(2):
+        print(('Attribute '+str(node.value)+' = '+str(i+1)+':').ljust(20), end='')
+        if(type(node.children[i]) is int):
+            print('Class =',node.children[i])
         else:
-            Print_Tree(tree.child[i])
+            Print_Tree(node.children[i], tab+1)
 
-#Kjører testdataen gjennom treeet og returnerer hvilken klassifisering den fikk
+
+def Print_Tree_List(tree):
+    for value in range(1,3):
+        subtree = tree.children[value-1]
+        print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
+        if type(subtree) is int:
+            print('C', subtree, sep='')
+        else:
+            print('A', subtree.value, sep='')
+            Print_Tree_List(subtree)
+            
+
+#Kjører testdataen gjennom treet og returnerer hvilken klassifisering den fikk
 def Classify_Data(data, tree_root):
     classification = []
     tree = tree_root
@@ -99,7 +148,7 @@ def Classify_Data(data, tree_root):
             #Vi har nådd en klassifisering
             return tree;
         else:
-            tree = tree.child[elem]
+            tree = tree.children[elem-1]
 
 def main():
     #Leser emseplene
@@ -109,14 +158,15 @@ def main():
         number_strings = line.split() # Split the line on runs of whitespace
         numbers = [int(n) for n in number_strings] # Convert to integers
         examples.append(numbers)
-        #print(examples)
+    #print(examples, "Examples end")
 
     #Jeg konverterte attributene til 0 indeksering.
     #Så det ekte attribut navnet er en høyere. 
     attributes = [0,1,2,3,4,5,6]
 
     tree = Decision_Tree_Learning(examples, attributes, examples)
-    Print_Tree(tree);
+    print('Building complete')
+    Print_Tree_List(tree);
 
     #Leser testene
     tests = []

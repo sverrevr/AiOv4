@@ -47,13 +47,6 @@ def Find_Most_Important_Attribute(examples, attributes):
     gains.sort()
     return gains[-1]
 
-def Random_Attribute(attributes):
-    #for testing purposes:
-    #return attributes[0]
-        
-    rand = random.randrange(0,len(attributes),1)
-    return attributes[rand]
-
 def B(q):
     return (q-1)*log(1-q, 2) - q*math.log(q, 2)
 
@@ -70,7 +63,12 @@ def Remainder(attribute, examples, p):
     n2 = len(examples)-p-n1
 
     return (p1+n1)*B(p1/(p1+n1))/len(examples) + (p2+n2)*B(p2/(p2+n2))/len(examples)
-    
+
+def Random_Attribute(attributes):
+    #for testing purposes:
+    return attributes[0]
+    #rand = random.randrange(0,len(attributes),1)
+    #return attributes[rand] 
 
 def Filter_Examples(examples, attribute, value):
     #returerer en list over examples med gitt verdi på gitt attribute
@@ -92,32 +90,27 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
         #print("No attributes")
         return Plurality_Value(examples)
     else:
-        #Lager en ny trenode som splitter på den viktigste atributten.
-        #Disse trenodene sendes oppover i rekusjonsrekken og
-        #kobles på noden over.
         tree = Node()
         tree.value = Random_Attribute(attributes)
-        #fjerner attributen vi nå har brukt opp
         attributes.remove(tree.value)
-        #Går gjennom alle verdiene attributen kan ha, altså 1 og 2.
-        for value in range(1,3):
-            #Finner alle eksemplene med denne verdien på rett atribut
-            exs = Filter_Examples(examples, tree.value, value);
-            #Kjører denne algoritmen igjen med bare disse eksemplene
-            subtree = Decision_Tree_Learning(exs, attributes, examples)
-            tree.children[value-1] = subtree
-            print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
-            if type(subtree) is int:
-                print('C', subtree, sep='')
-            else:
-                print('A',subtree.value, sep='')
+
+        tree.children[0] = Decision_Tree_Learning(Filter_Examples(examples, tree.value, 1), attributes, examples)
+        tree.children[1] = Decision_Tree_Learning(Filter_Examples(examples, tree.value, 2), attributes, examples)
         
+        #for value in range(1,3):
+            #exs = Filter_Examples(examples, tree.value, value);
+            #subtree = Decision_Tree_Learning(exs, attributes, examples)
+            #tree.children[value-1] = subtree
+            #print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
+            #if type(subtree) is int:
+                #print('C', subtree, sep='')
+            #else:
+                #print('A',subtree.value, sep='')
+                
+        print('Children of A', tree.value, tree, tree.children)
         return tree
 
-#Denne fantastiske print funksjonen skriver nedover mot venstre.
-#Når det kommer en blad node (har bokstaven C forran seg og en ekstra newline)
-#går treet opp et nivå og så andre veien. Gjør det veldig vannskelig å
-#dekode hvordan treet ser ut. 
+
 def Print_Tree(node, tab):
     print(('').ljust(20*tab), end='')
     for i in range(2):
@@ -141,14 +134,12 @@ def Print_Tree_List(tree):
 
 #Kjører testdataen gjennom treet og returnerer hvilken klassifisering den fikk
 def Classify_Data(data, tree_root):
-    classification = []
-    tree = tree_root
-    for elem in data:
-        if(type(tree) == int):
-            #Vi har nådd en klassifisering
-            return tree;
-        else:
-            tree = tree.children[elem-1]
+    node = tree_root
+    while not(type(node)==int):
+        print('Attribute', node.value)
+        node = node.children[data[node.value]-1]
+    return node
+
 
 def main():
     #Leser emseplene
@@ -166,7 +157,7 @@ def main():
 
     tree = Decision_Tree_Learning(examples, attributes, examples)
     print('Building complete')
-    Print_Tree_List(tree);
+    #Print_Tree_List(tree);
 
     #Leser testene
     tests = []
@@ -179,20 +170,20 @@ def main():
     classes = []
     wrong = 0
     right = 0
-    for line3 in tests:
-        cls = Classify_Data(line3,tree)
-        if(line3[-1] == cls):
+    for elem in tests:
+        cls = Classify_Data(elem, tree)
+        if(elem[-1] == cls):
             #om vi fant rett klassifisering
-            print(":",line3[-1],",",cls,"\tO")
+            #print(":",elem[-1],",",cls,"\tO")
             right += 1
         else:
             #om vi hadde feil klassifisering
-            print(":",line3[-1],",",cls,"\tX")
+            #print(":",elem[-1],",",cls,"\tX")
             wrong += 1
         classes.append(cls)
         
-    avrg_right = right / (right+wrong)
-    print("On avarage:", avrg_right, "was right");
+    percent_right = right / (right+wrong)
+    print(avrg_right, "of all elements were classified right");
 
 
 main()

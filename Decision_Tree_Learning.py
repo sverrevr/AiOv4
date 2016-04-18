@@ -22,10 +22,7 @@ def Plurality_Value(examples):
     if(class2 > class1):
         return 2
     else: #Om de er like returneres en tilfeldig 
-        if(random.randrange(0,2,1) == 1):
-            return 1
-        else:
-            return 2
+        return random.randrange(1,2,1)
 
     
 def Same_Classification(examples):
@@ -34,8 +31,8 @@ def Same_Classification(examples):
     for line in examples:
         #siste element er klassifikasjonen
         if(line[-1] != classification):
-            return 0
-    return 1
+            return False
+    return True
 
 def Find_Most_Important_Attribute(examples, attributes):
     #Det er het vi skal bruke etropi og stuff for å finne den viktigste

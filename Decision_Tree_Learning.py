@@ -1,8 +1,9 @@
 import random
 
 class Node:
-    value = -1
-    children = {}
+    def __init__(self):
+        self.value = -1
+        self.children = {}
 
 def Plurality_Value(examples):
     classcount = {1:0, 2:0}
@@ -92,13 +93,13 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
             exs = Filter_Examples(examples, tree.value, value)
             subtree = Decision_Tree_Learning(exs, attributes, examples)
             tree.children[value] = subtree
-            print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
-            if type(tree.children[value]) is int:
-                print('C', tree.children[value], sep='')
-            else:
-                print('A',tree.children[value], sep='')
+            #print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
+            #if type(tree.children[value]) is int:
+                #print('C', tree.children[value], sep='')
+            #else:
+                #print('A',tree.children[value], sep='')
                 
-        print('Children of A', tree.value, tree, tree.children)
+        #print('Children of A', tree.value, tree, tree.children)
         return tree
 
 
@@ -127,7 +128,6 @@ def Print_Tree_List(tree):
 def Classify_Data(data, tree_root):
     node = tree_root
     while not(type(node)==int):
-        print('Attribute', node.value, node.children)
         node = node.children[data[node.value]]
     return node
 
@@ -147,8 +147,9 @@ def main():
     attributes = [0,1,2,3,4,5,6]
 
     tree = Decision_Tree_Learning(examples, attributes, examples)
-    print('Building complete')
-    #Print_Tree_List(tree);
+
+    Print_Tree_List(tree)
+    Print_Tree(tree, 0)
 
     #Leser testene
     tests = []
@@ -174,7 +175,7 @@ def main():
         classes.append(cls)
         
     percent_right = right / (right+wrong)
-    print(avrg_right, "of all elements were classified right");
+    print(percent_right, "of all elements were classified right");
 
 
 main()

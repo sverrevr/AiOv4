@@ -2,24 +2,18 @@ import random
 
 class Node:
     value = -1
-    children = [None, None]
+    children = {}
 
 def Plurality_Value(examples):
-    class1 = 0
-    class2 = 0
+    classcount = {1:0, 2:0}
     #Skriver ned antallet av hver klassifikasjon
     for line in examples:
-        if(line[-1] == 1):
-            class1 += 1
-        else:
-            class2 += 1
+        classcount[line[-1]] += 1
     #Returnerer den største
-    if(class1 > class2):
-        return 1
-    if(class2 > class1):
-        return 2
-    else: #Om de er like returneres en tilfeldig 
+    if(classcount[1] == classcount[2]):
         return random.randrange(1,2,1)
+    else:
+        return max(classcount, key=lambda i: classcount[i])
 
     
 def Same_Classification(examples):
@@ -93,19 +87,16 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
         tree = Node()
         tree.value = Random_Attribute(attributes)
         attributes.remove(tree.value)
-
-        tree.children[0] = Decision_Tree_Learning(Filter_Examples(examples, tree.value, 1), attributes, examples)
-        tree.children[1] = Decision_Tree_Learning(Filter_Examples(examples, tree.value, 2), attributes, examples)
         
-        #for value in range(1,3):
-            #exs = Filter_Examples(examples, tree.value, value);
-            #subtree = Decision_Tree_Learning(exs, attributes, examples)
-            #tree.children[value-1] = subtree
-            #print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
-            #if type(subtree) is int:
-                #print('C', subtree, sep='')
-            #else:
-                #print('A',subtree.value, sep='')
+        for value in range(1,3):
+            exs = Filter_Examples(examples, tree.value, value)
+            subtree = Decision_Tree_Learning(exs, attributes, examples)
+            tree.children[value] = subtree
+            print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
+            if type(tree.children[value]) is int:
+                print('C', tree.children[value], sep='')
+            else:
+                print('A',tree.children[value], sep='')
                 
         print('Children of A', tree.value, tree, tree.children)
         return tree
@@ -113,8 +104,8 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
 
 def Print_Tree(node, tab):
     print(('').ljust(20*tab), end='')
-    for i in range(2):
-        print(('Attribute '+str(node.value)+' = '+str(i+1)+':').ljust(20), end='')
+    for i in range(1,3):
+        print(('Attribute '+str(node.value)+' = '+str(i)+':').ljust(20), end='')
         if(type(node.children[i]) is int):
             print('Class =',node.children[i])
         else:
@@ -123,7 +114,7 @@ def Print_Tree(node, tab):
 
 def Print_Tree_List(tree):
     for value in range(1,3):
-        subtree = tree.children[value-1]
+        subtree = tree.children[value]
         print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
         if type(subtree) is int:
             print('C', subtree, sep='')
@@ -136,8 +127,8 @@ def Print_Tree_List(tree):
 def Classify_Data(data, tree_root):
     node = tree_root
     while not(type(node)==int):
-        print('Attribute', node.value)
-        node = node.children[data[node.value]-1]
+        print('Attribute', node.value, node.children)
+        node = node.children[data[node.value]]
     return node
 
 

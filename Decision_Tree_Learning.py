@@ -87,11 +87,10 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
     else:
         tree = Node()
         tree.value = Random_Attribute(attributes)
-        attributes.remove(tree.value)
-        
+        attributesRem = [x if x!=tree.value for x in attributes]
         for value in range(1,3):
             exs = Filter_Examples(examples, tree.value, value)
-            subtree = Decision_Tree_Learning(exs, attributes, examples)
+            subtree = Decision_Tree_Learning(exs, attributesRem, examples)
             tree.children[value] = subtree
             #print('Child of A', tree.value, '=', value, ' is: ',sep='',end='')
             #if type(tree.children[value]) is int:

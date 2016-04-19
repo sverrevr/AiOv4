@@ -27,7 +27,7 @@ def Same_Classification(examples):
             return False
     return True
 
-def Find_Most_Important_Attribute(examples, attributes):
+def Find_Most_Important_Attribute(examples, attributes, tiebreak):
     gains = []
     # defining class 1 as positive
     p = 0
@@ -39,10 +39,30 @@ def Find_Most_Important_Attribute(examples, attributes):
     for A in attributes:
         gain = B(p/(p+n)) - Remainder(A,examples,p)
         gains.append((gain, A))
-
-    gains.sort()
-    print(gains, gains[-1][1])
+        
+    if tiebreak == 'random':    
+        best = (-1, -1)
+        #find strict maximum, if equal, change with 50% chance
+        for tup in gains:
+            if tup[0] > best[0]:
+                best = tup
+            elif tup[0] == best[0]:
+                random.seed()
+                chance = random.random()
+                if chance > 0.5:
+                    best = tup
+        return best[1]
+    elif tiebreak == 'low':
+        # sort first by attribute value in reverse, then infomation gain
+        # last elemnt is lowest attribute with highest information gain
+        gains = sorted(gains, key=lambda tup: tup[1], reverse=True)
+        gains = sorted(gains, key=lambda tup: tup[0])
+    else:
+        # breaks ties on highest attribute
+        gains.sort()
     return gains[-1][1]
+            
+        
 
 def B(q):
     if q == 1 or q == 0:
@@ -60,6 +80,11 @@ def Remainder(attribute, examples, p):
                 n1 += 1
     p2 = p-p1
     n2 = len(examples)-p-n1
+    # catch and override division by zero:
+    if not p1+n1:
+        return (p2+n2)*B(p2/(p2+n2))/len(examples)
+    if not p2+n2:
+        return (p1+n1)*B(p1/(p1+n1))/len(examples)
     return (p1+n1)*B(p1/(p1+n1))/len(examples) + (p2+n2)*B(p2/(p2+n2))/len(examples)
 
 def Random_Attribute(examples,attributes):
@@ -90,7 +115,7 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
         return Plurality_Value(examples)
     else:
         tree = Node()
-        tree.value = Find_Most_Important_Attribute(examples,attributes)
+        tree.value = Find_Most_Important_Attribute(examples,attributes,'low')
         #tree.value = Random_Attribute(examples,attributes)
         
         attributesRem = [x for x in attributes if x!=tree.value]
@@ -109,14 +134,13 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
 
 
 def Print_Tree(node, tab):
-    print(('').ljust(20*tab), end='')
-    for i in range(1,3):
-        print(('Attribute '+str(node.value)+' = '+str(i)+':').ljust(20), end='')
-        if(type(node.children[i]) is int):
-            print('Class =',node.children[i])
+    for key in node.children:
+        print(('A'+str(node.value)+' = '+str(key)+':').ljust(10), end='')
+        if(type(node.children[key]) is int):
+            print('C',node.children[key], sep='')
+            print(''.ljust(10*tab), end='')
         else:
-            print()
-            Print_Tree(node.children[i], tab+1)
+            Print_Tree(node.children[key], tab+1)
 
 
 def Print_Tree_List(tree):
@@ -155,7 +179,8 @@ def main():
     tree = Decision_Tree_Learning(examples, attributes, examples)
 
     #Print_Tree_List(tree)
-    #Print_Tree(tree, 0)
+    Print_Tree(tree, 0)
+    print()
 
     #Leser testene
     tests = []
@@ -171,11 +196,11 @@ def main():
         cls = Classify_Data(elem, tree)
         if(elem[-1] == cls):
             #om vi fant rett klassifisering
-            print(":",elem[-1],",",cls,"\tO")
+            #print(":",elem[-1],",",cls,"\tO")
             right += 1
         else:
             #om vi hadde feil klassifisering
-            print(":",elem[-1],",",cls,"\tX")
+            #print(":",elem[-1],",",cls,"\tX")
             wrong += 1
         classes.append(cls)
         

@@ -1,4 +1,5 @@
 import random
+import math
 
 class Node:
     def __init__(self):
@@ -36,14 +37,17 @@ def Find_Most_Important_Attribute(examples, attributes):
     n = len(examples)-p
     
     for A in attributes:
-        gain = B(p/(p+n)) - Remainder(A)
+        gain = B(p/(p+n)) - Remainder(A,examples,p)
         gains.append((gain, A))
 
     gains.sort()
-    return gains[-1]
+    print(gains, gains[-1][1])
+    return gains[-1][1]
 
 def B(q):
-    return (q-1)*log(1-q, 2) - q*math.log(q, 2)
+    if q == 1 or q == 0:
+        return 0
+    return (q-1)*math.log(1-q, 2) - q*math.log(q, 2)
 
 def Remainder(attribute, examples, p):
     p1 = 0
@@ -56,14 +60,14 @@ def Remainder(attribute, examples, p):
                 n1 += 1
     p2 = p-p1
     n2 = len(examples)-p-n1
-
     return (p1+n1)*B(p1/(p1+n1))/len(examples) + (p2+n2)*B(p2/(p2+n2))/len(examples)
 
-def Random_Attribute(attributes):
+def Random_Attribute(examples,attributes):
     #for testing purposes:
-    return attributes[0]
-    #rand = random.randrange(0,len(attributes),1)
-    #return attributes[rand] 
+    #return attributes[0]
+    random.seed()
+    rand = random.randrange(0,len(attributes),1)
+    return attributes[rand] 
 
 def Filter_Examples(examples, attribute, value):
     #returerer en list over examples med gitt verdi på gitt attribute
@@ -86,8 +90,10 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
         return Plurality_Value(examples)
     else:
         tree = Node()
-        tree.value = Random_Attribute(attributes)
-        attributesRem = [x if x!=tree.value for x in attributes]
+        tree.value = Find_Most_Important_Attribute(examples,attributes)
+        #tree.value = Random_Attribute(examples,attributes)
+        
+        attributesRem = [x for x in attributes if x!=tree.value]
         for value in range(1,3):
             exs = Filter_Examples(examples, tree.value, value)
             subtree = Decision_Tree_Learning(exs, attributesRem, examples)
@@ -109,6 +115,7 @@ def Print_Tree(node, tab):
         if(type(node.children[i]) is int):
             print('Class =',node.children[i])
         else:
+            print()
             Print_Tree(node.children[i], tab+1)
 
 
@@ -147,17 +154,16 @@ def main():
 
     tree = Decision_Tree_Learning(examples, attributes, examples)
 
-    Print_Tree_List(tree)
-    Print_Tree(tree, 0)
+    #Print_Tree_List(tree)
+    #Print_Tree(tree, 0)
 
     #Leser testene
     tests = []
-    f2 = open("test.txt")
-    for line2 in f2:
-        number_strings2 = line2.split() # Split the line on runs of whitespace
-        numbers2 = [int(n) for n in number_strings2] # Convert to integers
+    f = open("test.txt")
+    for line in f:
+        number_strings = line.split() # Split the line on runs of whitespace
+        numbers = [int(n) for n in number_strings] # Convert to integers
         tests.append(numbers)
-
     classes = []
     wrong = 0
     right = 0
@@ -165,11 +171,11 @@ def main():
         cls = Classify_Data(elem, tree)
         if(elem[-1] == cls):
             #om vi fant rett klassifisering
-            #print(":",elem[-1],",",cls,"\tO")
+            print(":",elem[-1],",",cls,"\tO")
             right += 1
         else:
             #om vi hadde feil klassifisering
-            #print(":",elem[-1],",",cls,"\tX")
+            print(":",elem[-1],",",cls,"\tX")
             wrong += 1
         classes.append(cls)
         

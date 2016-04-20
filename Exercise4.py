@@ -97,9 +97,14 @@ def Filter_Examples(examples, attribute, value):
         if (element[attribute] == value):
             exs.append(element)
     return exs
+
     
-#Hovedalgoritmen:
-def Decision_Tree_Learning(examples, attributes, parent_examples):
+# importance is a flag of how importance of attributes is determined:
+# random
+# info-low - information gain, breaks ties by preferring the lowest attribute name
+# info-high - information gain, tiebreaking on highest attribute name
+# info-random - information gain, random tiebreaking
+def Decision_Tree_Learning(examples, attributes, parent_examples, importance):
     if not examples:
         return Plurality_Value(parent_examples)
     elif Same_Classification(examples):
@@ -108,25 +113,34 @@ def Decision_Tree_Learning(examples, attributes, parent_examples):
         return Plurality_Value(examples)
     else:
         tree = Node()
-        tree.value = Find_Most_Important_Attribute(examples,attributes,'low')
-        #tree.value = Random_Attribute(examples,attributes)
+        if importance == 'random':
+            tree.value = Random_Attribute(examples,attributes)
+        else:
+            tree.value = Find_Most_Important_Attribute(examples,attributes,(importance.split('-')[1]))
         
         attributesRem = [x for x in attributes if x!=tree.value]
         for value in range(1,3):
             exs = [ex for ex in examples if ex[tree.value] == value]
-            subtree = Decision_Tree_Learning(exs, attributesRem, examples)
+            subtree = Decision_Tree_Learning(exs, attributesRem, examples, importance)
             tree.children[value] = subtree
         return tree
 
-# still not nice!!!
-def Print_Tree(node, tab):
-    for key in node.children:
-        print(('A'+str(node.value)+' = '+str(key)+':').ljust(10), end='')
-        if(type(node.children[key]) is int):
-            print('C',node.children[key], sep='')
-            print(''.ljust(10*tab), end='')
-        else:
-            Print_Tree(node.children[key], tab+1)
+# courtesy of stack overflow
+def Print_Tree(node, indent, pathkey, last):
+    print(indent, pathkey, '-', end ='', sep='')
+    if last:
+        indent += '  '
+    else:
+        indent += '| '
+    if (type(node)) is int:
+        print('Class',node)
+    else:
+        print('Attribute',node.value)
+
+        childCount = len(node.children)
+        for key in node.children:
+            childCount -= 1
+            Print_Tree(node.children[key], indent, key, childCount==0)
             
 
 def Classify_Data(data, tree_root):
@@ -147,9 +161,9 @@ def main():
     # attributes are now zero-indexed:
     attributes = range(7)
 
-    tree = Decision_Tree_Learning(examples, attributes, examples)
+    tree = Decision_Tree_Learning(examples, attributes, examples, 'info-low')
 
-    Print_Tree(tree, 0)
+    Print_Tree(tree, '', ' ', True)
     print()
 
     tests = []
@@ -169,7 +183,7 @@ def main():
             wrong += 1
         
     percent_right = right /(right+wrong)
-    print(percent_right, "of all elements were classified right");
+    print("{0:.3f} of all elements were classified right".format(percent_right));
 
 
 main()
